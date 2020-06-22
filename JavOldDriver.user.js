@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         JAV老司机
 // @namespace    https://sleazyfork.org/zh-CN/users/25794
-// @version      3.1.4
+// @version      3.1.5
 // @supportURL   https://sleazyfork.org/zh-CN/scripts/25781/feedback
 // @source       https://github.com/hobbyfang/javOldDriver
 // @description  JAV老司机神器,支持各Jav老司机站点。拥有高效浏览Jav的页面排版，JAV高清预览大图，JAV列表无限滚动自动加载，合成“挊”的自动获取JAV磁链接，一键自动115离线下载。。。。没时间解释了，快上车！
@@ -62,6 +62,7 @@
 // 此目的用于过滤个人已阅览过的内容提供快速判断.目前在同步过程中如果浏览器当前页面不在javlibrary站点,同步会被暂停或中止,需注意.
 // 当然如果不登录javlibrary或同版本号已经同步过,则不会运行同步,并无此影响.
 
+// v3.1.5 增加过滤评分及排序时排除10分的番号，更换失效的磁链地址。
 // v3.1.4 更换失效的磁链地址。
 // v3.1.3 更换失效的磁链地址。
 // v3.1.2 优化javbus/avmoo/avsox步兵瀑布流排版。
@@ -110,7 +111,7 @@
     // 表
     let myMovie;
 
-    /***
+    /**
      * 对Date的扩展，将 Date 转化为指定格式的String
      * 月(M)、日(d)、小时(h)、分(m)、秒(s)、季度(q) 可以用 1-2 个占位符，/';
      * 年(y)可以用 1-4 个占位符，毫秒(S)只能用 1 个占位符(是 1-3 位的数字)
@@ -681,16 +682,16 @@
                         }
                     }
                 }
-                function filerScore(indexCd_id, pingfengString) {
+                function filerScore(indexCd_id, score) {
                     //过滤X评分以下的影片  //if(vid == 'javlikq7qu')debugger;
                     if ($(indexCd_id).context.URL.indexOf("?delete") > 0) {
-                        if ($(indexCd_id).context.URL.indexOf("delete7down") > 0 && Number(pingfengString.replace('(', '').replace(')', '')) <= 7) {
+                        if ($(indexCd_id).context.URL.indexOf("delete7down") > 0 && score <= 7.01) {
                             $(indexCd_id).remove();
                         }
-                        else if ($(indexCd_id).context.URL.indexOf("delete8down") > 0 && Number(pingfengString.replace('(', '').replace(')', '')) <= 8) {
+                        else if ($(indexCd_id).context.URL.indexOf("delete8down") > 0 && score <= 8.01) {
                             $(indexCd_id).remove();
                         }
-                        else if ($(indexCd_id).context.URL.indexOf("delete9down") > 0 && Number(pingfengString.replace('(', '').replace(')', '')) <= 9) {
+                        else if ($(indexCd_id).context.URL.indexOf("delete9down") > 0 && score <= 9.01) {
                             $(indexCd_id).remove();
                         }
                     }
@@ -715,10 +716,13 @@
                     } else {
                         s = 0 + r;
                     }
+					if (s >= 10) {
+						s = 0.01;
+					}
                     $(indexCd_id).children("a").attr("score", s);
                     setbgcolor(indexCd_id, dateString);
                     filerMonth(indexCd_id, dateString);
-                    filerScore(indexCd_id, pingfengString);
+                    filerScore(indexCd_id, s);
                 }
 
                 if (document.title.search(/JAVLibrary/) > 0 && elems) {
@@ -780,7 +784,7 @@
                         //修改样式
                         $(aEle.parentElement.parentElement).attr("style","flex-direction: column;");
                         // Javlib的跳转链接
-                        $(aEle.parentElement).append("<a style='color:red;' href='http://www.javlibrary.com/cn/vl_searchbyid.php?keyword="
+                        $(aEle.parentElement).append("<a style='color:red;' href='https://www.javlibrary.com/cn/vl_searchbyid.php?keyword="
                             + Common.getAvCode(avid) +"&"+avid+ "' target='_blank' title='点击到Javlib看看'>&nbsp;&nbsp;Javlib</a>");
                         // 番号预览大图
                         Common.addAvImg(Common.getAvCode(avid), function ($img) {
@@ -986,7 +990,7 @@
                 },
             },
             resource_sites:{
-                "btsow.club": function (kw, cb) { //btsow
+                "btsow.fun": function (kw, cb) { //btsow
                     let promise = request("https://" + GM_getValue('search_index') + "/search/" + kw);
                     promise.then((result) => {
                         thirdparty.nong.search_engines.full_url = result.finalUrl;
@@ -2176,7 +2180,7 @@
 
                 thirdparty.busTypeSearch();
                 // 加入javlibry的跳转链接
-                $('.col-md-3.info').append(`<a href="http://www.javlibrary.com/cn/vl_searchbyid.php?keyword=${AVID}" style="color: rgb(204, 0, 0);">JavLibrary&nbsp;</a>`);
+                $('.col-md-3.info').append(`<a href="https://www.javlibrary.com/cn/vl_searchbyid.php?keyword=${AVID}" style="color: rgb(204, 0, 0);">JavLibrary&nbsp;</a>`);
                 // 修改javbus磁链列表头，增加两列
                 $('#magnet-table tbody tr').append('<td style="text-align:center;white-space:nowrap">操作</td><td style="text-align:center;white-space:nowrap">离线下载</td>');
                 // 先执行一次，针对已经提前加载出磁链列表结果时有效
